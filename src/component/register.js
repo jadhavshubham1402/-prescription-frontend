@@ -7,6 +7,8 @@ import { register } from "../axios/axiosInstance";
 import LoaderComponent from "./loader";
 import { errorToast, successToast } from "../toastConfig";
 import { useDropzone } from "react-dropzone";
+import Select from "react-select";
+import { filterObject } from "../helper/function";
 
 const Register = () => {
   const [showPass, setShowPass] = useState(false);
@@ -28,6 +30,21 @@ const Register = () => {
     confirmPass: "",
   };
 
+  const options = [
+    {
+      label: "Doctor",
+      value: "doctor",
+    },
+    {
+      label: "Patient",
+      value: "patient",
+    },
+    {
+      label: "Admin",
+      value: "admin",
+    },
+  ];
+
   const validationSchema = Yup.object().shape({
     name: Yup.string().required("Name is required"),
     email: Yup.string().email("Invalid Email").required("Email is required"),
@@ -41,6 +58,11 @@ const Register = () => {
         /^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[0-9]).{8,}$/,
         "Password must contain at least one uppercase letter, one symbol, and one number"
       ),
+    type: Yup.string().required("type is required"),
+    yearOfExperience: Yup.number()
+      .typeError("Must be a number")
+      .min(0, "Must be a positive number or zero")
+      .nullable(),
     confirmPass: Yup.string()
       .oneOf([Yup.ref("password"), null], "Passwords must match")
       .required("Confirm Password is required"),
@@ -56,8 +78,17 @@ const Register = () => {
   const handleLogin = async (values, { setSubmitting }) => {
     try {
       setLoader(true);
+      const formData = new FormData();
+
       delete values.confirmPass;
-      const res = await register(values);
+
+      const filteredValues = filterObject(values);
+
+      Object.entries(filteredValues).forEach(([key, value]) =>
+        formData.append(key, value)
+      );
+
+      const res = await register(formData);
 
       if (res.status == 200) {
         successToast("User Created");
@@ -77,7 +108,7 @@ const Register = () => {
       onDrop: (acceptedFiles) => {
         setFieldValue(field.name, acceptedFiles[0]);
       },
-      accept: "image/jpeg, image/png, image/gif",
+      accept: ["image/jpeg", "image/png", "image/gif"],
       multiple: false,
     });
 
@@ -113,7 +144,7 @@ const Register = () => {
             initialValues={initialValues}
             validationSchema={validationSchema}
             onSubmit={handleLogin}>
-            {({ isSubmitting }) => (
+            {({ isSubmitting, values, setFieldValue }) => (
               <Form>
                 <div className="mb-3">
                   <label
@@ -187,42 +218,134 @@ const Register = () => {
                 </div>
                 <div className="mb-3">
                   <label
-                    htmlFor="speciality"
+                    htmlFor="type"
                     className="mb-1 block text-lg font-medium text-gray-800">
-                    Speciality
+                    Type
                   </label>
-                  <Field
-                    type="text"
-                    id="speciality"
-                    name="speciality"
-                    placeholder="Enter your speciality"
-                    className="h-9 w-full rounded-lg border-2 border-gray-200 p-2 outline-none placeholder:text-lg hover:border-gray-500 focus:border-gray-500 active:border-gray-500"
+                  <Select
+                    name="type"
+                    id="type"
+                    placeholder="Select a Type"
+                    options={options}
+                    // defaultValue={options.find((e: any) => defaultValue == e.value)}
+                    // defaultInputValue={defaultValue}
+                    isSearchable={false}
+                    onChange={(selectedOption) => {
+                      setFieldValue("type", selectedOption?.value);
+                    }}
                   />
                   <ErrorMessage
-                    name="speciality"
+                    name="type"
                     component="div"
                     className="mt-1 text-lg text-red-600"
                   />
                 </div>
-                <div className="mb-3">
-                  <label
-                    htmlFor="yearOfExperience"
-                    className="mb-1 block text-lg font-medium text-gray-800">
-                    Year Of Experience
-                  </label>
-                  <Field
-                    type="text"
-                    id="yearOfExperience"
-                    name="yearOfExperience"
-                    placeholder="Enter your Year Of Experience"
-                    className="h-9 w-full rounded-lg border-2 border-gray-200 p-2 outline-none placeholder:text-lg hover:border-gray-500 focus:border-gray-500 active:border-gray-500"
-                  />
-                  <ErrorMessage
-                    name="yearOfExperience"
-                    component="div"
-                    className="mt-1 text-lg text-red-600"
-                  />
-                </div>
+                {values.type == options[0].value && (
+                  <>
+                    <div className="mb-3">
+                      <label
+                        htmlFor="speciality"
+                        className="mb-1 block text-lg font-medium text-gray-800">
+                        Speciality
+                      </label>
+                      <Field
+                        type="text"
+                        id="speciality"
+                        name="speciality"
+                        placeholder="Enter your speciality"
+                        className="h-9 w-full rounded-lg border-2 border-gray-200 p-2 outline-none placeholder:text-lg hover:border-gray-500 focus:border-gray-500 active:border-gray-500"
+                      />
+                      <ErrorMessage
+                        name="speciality"
+                        component="div"
+                        className="mt-1 text-lg text-red-600"
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label
+                        htmlFor="yearOfExperience"
+                        className="mb-1 block text-lg font-medium text-gray-800">
+                        Year Of Experience
+                      </label>
+                      <Field
+                        type="text"
+                        id="yearOfExperience"
+                        name="yearOfExperience"
+                        placeholder="Enter your Year Of Experience"
+                        className="h-9 w-full rounded-lg border-2 border-gray-200 p-2 outline-none placeholder:text-lg hover:border-gray-500 focus:border-gray-500 active:border-gray-500"
+                      />
+                      <ErrorMessage
+                        name="yearOfExperience"
+                        component="div"
+                        className="mt-1 text-lg text-red-600"
+                      />
+                    </div>
+                  </>
+                )}
+                {values.type == options[1].value && (
+                  <>
+                    <div className="mb-3">
+                      <label
+                        htmlFor="age"
+                        className="mb-1 block text-lg font-medium text-gray-800">
+                        Age
+                      </label>
+                      <Field
+                        type="text"
+                        id="age"
+                        name="age"
+                        placeholder="Enter your age"
+                        className="h-9 w-full rounded-lg border-2 border-gray-200 p-2 outline-none placeholder:text-lg hover:border-gray-500 focus:border-gray-500 active:border-gray-500"
+                      />
+                      <ErrorMessage
+                        name="age"
+                        component="div"
+                        className="mt-1 text-lg text-red-600"
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label
+                        htmlFor="historyOfSurgery"
+                        className="mb-1 block text-lg font-medium text-gray-800">
+                        History Of Surgery
+                      </label>
+                      <Field
+                        type="text"
+                        id="historyOfSurgery"
+                        name="historyOfSurgery"
+                        placeholder="Enter your History Of Surgery"
+                        className="h-9 w-full rounded-lg border-2 border-gray-200 p-2 outline-none placeholder:text-lg hover:border-gray-500 focus:border-gray-500 active:border-gray-500"
+                      />
+                      <ErrorMessage
+                        name="historyOfSurgery"
+                        component="div"
+                        className="mt-1 text-lg text-red-600"
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label
+                        htmlFor="historyOfIllness"
+                        className="mb-1 block text-lg font-medium text-gray-800">
+                        History Of Illness
+                      </label>
+                      <Field
+                        type="text"
+                        as="textarea"
+                        row={2}
+                        id="historyOfIllness"
+                        name="historyOfIllness"
+                        placeholder="Enter your History Of Illness"
+                        className="w-full rounded-lg border-2 border-gray-200 p-2 outline-none placeholder:text-lg hover:border-gray-500 focus:border-gray-500 active:border-gray-500"
+                      />
+                      <ErrorMessage
+                        name="historyOfIllness"
+                        component="div"
+                        className="mt-1 text-lg text-red-600"
+                      />
+                    </div>
+                  </>
+                )}
+
                 <div className="mb-3">
                   <label
                     htmlFor="password"
@@ -254,6 +377,7 @@ const Register = () => {
                     className="mt-1 text-lg text-red-600"
                   />
                 </div>
+
                 <div className="mb-3">
                   <label
                     htmlFor="confirmPass"
@@ -287,7 +411,7 @@ const Register = () => {
                 </div>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  // disabled={isSubmitting}
                   className="linear text-gray-900 bg-blue-400 hover:bg-blue-800 active:bg-blue-900 hover:text-white active:text-white mt-2 w-full rounded-xl  py-[8px] text-lg font-medium">
                   Register
                 </button>

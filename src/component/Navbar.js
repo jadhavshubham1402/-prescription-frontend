@@ -3,6 +3,7 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { logout } from "../redux/reducer/reducer";
 import { useDispatch } from "react-redux";
+import { formatHeader } from "../helper/function";
 
 function Navbar() {
   const location = useLocation();
@@ -36,17 +37,10 @@ function Navbar() {
   return (
     <header className="bg-blue-600 text-white p-4 shadow-md">
       <div className="container mx-auto flex items-center justify-between">
-        <h1 className="text-xl font-bold">Admin Panel</h1>
+        <h1 className="text-xl font-bold">
+          {formatHeader(location.pathname.split("/")[2])}
+        </h1>
         <div className="flex items-center space-x-4">
-          <nav>
-            <div className="flex space-x-2">
-              <a className="text-white hover:underline" href="/admin/home">
-                Home
-              </a>
-              <span className="text-gray-400">/</span>
-              {breadcrumbItems}
-            </div>
-          </nav>
           <button
             onClick={handleLogout}
             className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
